@@ -2,7 +2,7 @@ import random
 import time
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from playwright.sync_api import sync_playwright, TimeoutError
+from playwright.sync_api import sync_playwright
 from fake_useragent import UserAgent
 from urllib.parse import urlparse
 
@@ -13,6 +13,33 @@ def get_random_user_agent():
     ua = UserAgent()
     return ua.random
 
+def get_random_referer():
+    referers = [
+        "https://yeari.tech",
+        "https://www.pinterest.com",
+        "https://web.telegram.org",
+        "https://www.instagram.com",
+        "https://www.facebook.com",
+        "https://www.twitter.com",
+        "https://www.linkedin.com",
+        "https://www.reddit.com",
+        "https://www.tiktok.com",
+        "https://www.quora.com",
+        "https://www.youtube.com",
+        "https://www.whatsapp.com",
+        "https://www.snapchat.com",
+        "https://www.flickr.com",
+        "https://www.tumblr.com",
+        "https://www.medium.com",
+        "https://www.github.com",
+        "https://www.stackoverflow.com",
+        "https://www.paypal.com",
+        "https://www.booking.com",
+        # Tambahkan lebih banyak referer sesuai kebutuhan
+    ]
+    return random.choice(referers)
+
+
 def read_proxies_from_file(filename):
     try:
         with open(filename, 'r') as file:
@@ -22,11 +49,28 @@ def read_proxies_from_file(filename):
         logging.error("File proxy.txt tidak ditemukan!")
         return []
 
+def simulate_user_behavior(page):
+    # Menggerakkan kursor
+    for _ in range(3):
+        x = random.randint(0, 1280)
+        y = random.randint(0, 720)
+        page.mouse.move(x, y)
+        time.sleep(random.uniform(0.1, 0.5))
+    
+    # Mengklik area tertentu (jika ada)
+    if random.random() < 0.5:  # 50% kemungkinan untuk mengklik
+        page.mouse.click(random.randint(0, 1280), random.randint(0, 720))
+
+    # Gulir ke bawah
+    page.mouse.wheel(0, random.randint(100, 500))
+    time.sleep(random.uniform(1, 3))  # Tunggu setelah menggulir
+
 def run_playwright_with_proxy(proxy_url):
     parsed_proxy = urlparse(proxy_url)
     user_agent = get_random_user_agent()
+    referer_url = get_random_referer()
     logging.info(f'Starting worker with proxy: {proxy_url}')
-    
+
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=False)
@@ -40,42 +84,31 @@ def run_playwright_with_proxy(proxy_url):
             )
             page = context.new_page()
 
-            referer_url = "https://yeari.tech"
             direct_link = "https://www.profitablecpmrate.com/t3zqjex2ce?key=542325135c7996733951da8e62b9d900"
-
             logging.info(f'Navigating to {referer_url} using proxy {proxy_url}')
-            page.goto(referer_url, timeout=30000)  # Timeout setelah 30 detik
-            logging.info(f'Worker with proxy {proxy_url} visited the website.')
+            page.goto(referer_url, timeout=30000)
+            logging.info(f'Visited referer page.')
 
             time.sleep(random.uniform(15, 30))
 
             logging.info(f'Navigating to {direct_link} using referer {referer_url}')
             page.goto(direct_link, referer=referer_url, timeout=30000)
+            logging.info(f'Visited direct link with referer.')
 
-            # Menunggu pengalihan sampai mencapai URL akhir
-            last_url = page.url
-            for _ in range(10):  # Maksimal 10 kali pengecekan pengalihan
-                time.sleep(3)  # Beri waktu jeda agar pengalihan terjadi
-                if page.url != last_url:
-                    logging.info(f'Redirected to: {page.url}')
-                    last_url = page.url  # Update URL yang saat ini diakses
-                else:
-                    break  # Keluar jika URL tidak berubah, artinya pengalihan selesai
-
-            logging.info(f'Final URL after possible redirects: {page.url}')
+            # Simulasikan perilaku pengguna
+            simulate_user_behavior(page)
 
             time.sleep(random.uniform(30, 60))
+
             context.close()
             browser.close()
         logging.info(f'Worker with proxy {proxy_url} has finished processing.')
-    except TimeoutError:
-        logging.error(f'Worker with proxy {proxy_url} encountered a timeout error.')
     except Exception as e:
         logging.error(f'Worker with proxy {proxy_url} generated an exception: {e}')
 
 def main(num_workers):
     proxies = read_proxies_from_file('proxy.txt')
-    
+
     if not proxies:
         logging.warning("No proxies found in proxy.txt")
         return
