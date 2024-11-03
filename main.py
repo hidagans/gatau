@@ -58,7 +58,11 @@ def run_playwright_with_proxy(proxy_url):
 def main(num_workers):
     proxies = read_proxies_from_file('proxy.txt')
     
-    if proxies:
+    if not proxies:
+        logging.warning("No proxies found in proxy.txt")
+        return
+
+    while True:  # Loop untuk memastikan program berjalan terus menerus
         logging.info(f'Starting {num_workers} workers.')
         
         with ThreadPoolExecutor(max_workers=num_workers) as executor:
@@ -69,9 +73,12 @@ def main(num_workers):
                     future.result()  # Wait for task to finish
                 except Exception as e:
                     logging.error(f'Worker generated an exception: {e}')
-    else:
-        logging.warning("No proxies found in proxy.txt")
+        
+        # Delay acak antara 5 hingga 30 menit setelah semua worker selesai
+        delay = random.randint(5 * 60, 30 * 60)
+        logging.info(f'All workers completed. Waiting for {delay / 60} minutes before starting new batch.')
+        time.sleep(delay)
 
 if __name__ == "__main__":
-    NUM_WORKERS = 10  # Number of workers to run
+    NUM_WORKERS = 10  # Jumlah worker yang akan dijalankan
     main(NUM_WORKERS)
