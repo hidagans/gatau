@@ -30,16 +30,16 @@ def run_playwright_with_proxy(proxy):
             )
             page = context.new_page()
 
-            # Mengunjungi website dengan referer
             referer_url = "https://yeari.tech"
+            logging.info(f'Navigating to {referer_url} using proxy {proxy}')
             page.goto(referer_url)
             logging.info(f'Worker with proxy {proxy} visited the website.')
 
             time.sleep(random.uniform(2, 5))  # Random sleep to mimic human behavior
 
-            # Mengunjungi direct link dengan referer
             direct_link = "https://www.profitablecpmrate.com/b1ybe1zgqj?key=638cfc32d59378f6618857b1192b5652"
-            page.goto(direct_link, referer=referer_url)  # Menambahkan referer
+            logging.info(f'Navigating to {direct_link} using referer {referer_url}')
+            page.goto(direct_link, referer=referer_url)
             logging.info(f'Worker with proxy {proxy} visited the direct link with referer.')
 
             time.sleep(random.uniform(2, 5))  # Random sleep to mimic human behavior
