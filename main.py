@@ -15,7 +15,6 @@ def get_random_user_agent():
 
 def get_random_referer():
     referers = [
-        "https://yeari.tech",
         "https://www.pinterest.com",
         "https://web.telegram.org",
         "https://www.instagram.com",
