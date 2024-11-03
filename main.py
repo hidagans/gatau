@@ -41,7 +41,7 @@ def run_playwright_with_proxy(proxy_url):
             page = context.new_page()
 
             referer_url = "https://yeari.tech"
-            direct_link = "https://www.profitablecpmrate.com/b1ybe1zgqj?key=638cfc32d59378f6618857b1192b5652"
+            direct_link = "https://www.profitablecpmrate.com/t3zqjex2ce?key=542325135c7996733951da8e62b9d900"
 
             logging.info(f'Navigating to {referer_url} using proxy {proxy_url}')
             page.goto(referer_url, timeout=30000)  # Timeout setelah 30 detik
