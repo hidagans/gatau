@@ -41,14 +41,14 @@ def run_playwright_with_proxy(proxy_url):
             page.goto(referer_url)
             logging.info(f'Worker with proxy {proxy_url} visited the website.')
 
-            time.sleep(random.uniform(2, 5))
+            time.sleep(random.uniform(15, 30))
 
             direct_link = "https://www.profitablecpmrate.com/b1ybe1zgqj?key=638cfc32d59378f6618857b1192b5652"
             logging.info(f'Navigating to {direct_link} using referer {referer_url}')
             page.goto(direct_link, referer=referer_url)
             logging.info(f'Worker with proxy {proxy_url} visited the direct link with referer.')
 
-            time.sleep(random.uniform(2, 5))
+            time.sleep(random.uniform(30, 60))
 
             browser.close()
         logging.info(f'Worker with proxy {proxy_url} has finished processing.')
