@@ -25,7 +25,7 @@ def run_playwright_with_proxy(proxy):
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=False)  # Non-headless mode
             context = browser.new_context(
-                proxy={"server": "http://jLbivdI6M0SyaxsZ:rjD4QrKn6t0KuZuL@geo.floppydata.com:10080"},
+                proxy={"server": proxy},  # Gunakan proxy yang diteruskan ke fungsi
                 user_agent=user_agent
             )
             page = context.new_page()
