@@ -25,7 +25,7 @@ def run_playwright_with_proxy(proxy):
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=False)  # Non-headless mode
             context = browser.new_context(
-                proxy={"server": proxy},
+                proxy={"server": "http://jLbivdI6M0SyaxsZ:rjD4QrKn6t0KuZuL@geo.floppydata.com:10080"},
                 user_agent=user_agent
             )
             page = context.new_page()
@@ -67,5 +67,5 @@ def main(num_workers):
         logging.warning("No proxies found in proxy.txt")
 
 if __name__ == "__main__":
-    NUM_WORKERS = 5  # Number of workers to run
+    NUM_WORKERS = 1  # Number of workers to run
     main(NUM_WORKERS)
