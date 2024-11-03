@@ -1,58 +1,35 @@
 import random
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
+from playwright.sync_api import sync_playwright
 from fake_useragent import UserAgent
-import time
-
-# Fungsi untuk membaca proxy dari file
-def load_proxies(filename):
-    with open(filename, 'r') as file:
-        proxies = file.readlines()
-    return [proxy.strip() for proxy in proxies]
 
 # Fungsi untuk memilih user agent secara acak
 def get_random_user_agent():
     ua = UserAgent()
-    user_agents = [
-        ua.random,  # User agent acak
-        ua.android,  # User agent untuk Android
-        ua.iphone,    # User agent untuk iPhone
-        ua.chrome,    # User agent untuk Chrome desktop
-        ua.firefox,   # User agent untuk Firefox desktop
-    ]
-    return random.choice(user_agents)
+    return ua.random
 
-# Load proxy dari file
-proxies = load_proxies('proxy.txt')
+# Fungsi untuk menjalankan Playwright
+def run_playwright():
+    user_agent = get_random_user_agent()
+    
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)  # Anda juga bisa menggunakan p.firefox()
+        context = browser.new_context(user_agent=user_agent)
+        page = context.new_page()
 
-# Mengatur opsi untuk Chrome
-chrome_options = Options()
-chrome_options.add_argument("--headless")  # Menjalankan di background
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
+        # Mengunjungi website
+        page.goto("https://yeari.tech")
+        print("Website visited")
 
-# Pilih proxy secara acak
-proxy = random.choice(proxies)
-chrome_options.add_argument(f'--proxy-server={proxy}')
+        # Klik direct link Adsterra
+        direct_link = "https://www.profitablecpmrate.com/b1ybe1zgqj?key=638cfc32d59378f6618857b1192b5652"
+        page.goto(direct_link)
+        print("Direct link visited")
 
-# Set user agent acak
-user_agent = get_random_user_agent()
-chrome_options.add_argument(f'user-agent={user_agent}')
+        # Tunggu beberapa detik untuk melihat hasil (jika diperlukan)
+        page.wait_for_timeout(5000)
 
-# Ganti path ke chromedriver Anda
-service = Service('/path/to/chromedriver')
-driver = webdriver.Chrome(service=service, options=chrome_options)
+        # Menutup browser
+        browser.close()
 
-try:
-    # Mengunjungi website
-    driver.get("https://yeari.tech")
-    time.sleep(3)  # Tunggu beberapa detik untuk memuat halaman
-
-    # Mengklik direct link Adsterra
-    direct_link = "https://www.profitablecpmrate.com/b1ybe1zgqj?key=638cfc32d59378f6618857b1192b5652"
-    driver.get(direct_link)
-    time.sleep(5)  # Tunggu beberapa detik untuk memuat halaman iklan
-
-finally:
-    driver.quit()  # Menutup browser
+if __name__ == "__main__":
+    run_playwright()
