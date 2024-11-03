@@ -2,7 +2,7 @@ import random
 import time
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, TimeoutError
 from fake_useragent import UserAgent
 from urllib.parse import urlparse
 
@@ -14,9 +14,13 @@ def get_random_user_agent():
     return ua.random
 
 def read_proxies_from_file(filename):
-    with open(filename, 'r') as file:
-        proxies = file.readlines()
-    return [proxy.strip() for proxy in proxies if proxy.strip()]
+    try:
+        with open(filename, 'r') as file:
+            proxies = file.readlines()
+        return [proxy.strip() for proxy in proxies if proxy.strip()]
+    except FileNotFoundError:
+        logging.error("File proxy.txt tidak ditemukan!")
+        return []
 
 def run_playwright_with_proxy(proxy_url):
     parsed_proxy = urlparse(proxy_url)
@@ -25,7 +29,7 @@ def run_playwright_with_proxy(proxy_url):
     
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=False)
+            browser = p.chromium.launch(headless=True)
             context = browser.new_context(
                 proxy={
                     "server": f"{parsed_proxy.scheme}://{parsed_proxy.hostname}:{parsed_proxy.port}",
@@ -37,24 +41,28 @@ def run_playwright_with_proxy(proxy_url):
             page = context.new_page()
 
             referer_url = "https://yeari.tech"
+            direct_link = "https://www.profitablecpmrate.com/b1ybe1zgqj?key=638cfc32d59378f6618857b1192b5652"
+
             logging.info(f'Navigating to {referer_url} using proxy {proxy_url}')
-            page.goto(referer_url)
+            page.goto(referer_url, timeout=30000)  # Timeout setelah 30 detik
             logging.info(f'Worker with proxy {proxy_url} visited the website.')
 
             time.sleep(random.uniform(15, 30))
 
-            direct_link = "https://www.profitablecpmrate.com/b1ybe1zgqj?key=638cfc32d59378f6618857b1192b5652"
             logging.info(f'Navigating to {direct_link} using referer {referer_url}')
-            page.goto(direct_link, referer=referer_url)
+            page.goto(direct_link, referer=referer_url, timeout=30000)
             logging.info(f'Worker with proxy {proxy_url} visited the direct link with referer.')
 
             time.sleep(random.uniform(30, 60))
 
+            context.close()
             browser.close()
         logging.info(f'Worker with proxy {proxy_url} has finished processing.')
+    except TimeoutError:
+        logging.error(f'Worker with proxy {proxy_url} encountered a timeout error.')
     except Exception as e:
         logging.error(f'Worker with proxy {proxy_url} generated an exception: {e}')
-        
+
 def main(num_workers):
     proxies = read_proxies_from_file('proxy.txt')
     
