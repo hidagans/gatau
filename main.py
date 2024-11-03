@@ -84,7 +84,7 @@ def run_playwright_with_proxy(proxy_url):
             )
             page = context.new_page()
 
-            direct_link = "https://www.profitablecpmrate.com/t3zqjex2ce?key=542325135c7996733951da8e62b9d900"
+            direct_link = "https://yeari.tech"
             logging.info(f'Navigating to {referer_url} using proxy {proxy_url}')
             page.goto(referer_url, timeout=30000)
             logging.info(f'Visited referer page.')
