@@ -73,5 +73,5 @@ def main(num_workers):
         logging.warning("No proxies found in proxy.txt")
 
 if __name__ == "__main__":
-    NUM_WORKERS = 1  # Number of workers to run
+    NUM_WORKERS = 10  # Number of workers to run
     main(NUM_WORKERS)
