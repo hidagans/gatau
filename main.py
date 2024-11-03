@@ -21,31 +21,34 @@ def run_playwright_with_proxy(proxy):
     user_agent = get_random_user_agent()
     logging.info(f'Starting worker with proxy: {proxy}')
     
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)  # Non-headless mode
-        context = browser.new_context(
-            proxy={"server": proxy},
-            user_agent=user_agent
-        )
-        page = context.new_page()
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=False)  # Non-headless mode
+            context = browser.new_context(
+                proxy={"server": proxy},
+                user_agent=user_agent
+            )
+            page = context.new_page()
 
-        # Mengunjungi website dengan referer
-        referer_url = "https://yeari.tech"  # URL referer yang diinginkan
-        page.goto(referer_url)
-        logging.info(f'Worker with proxy {proxy} visited the website.')
+            # Mengunjungi website dengan referer
+            referer_url = "https://yeari.tech"
+            page.goto(referer_url)
+            logging.info(f'Worker with proxy {proxy} visited the website.')
 
-        time.sleep(random.uniform(2, 5))  # Random sleep to mimic human behavior
+            time.sleep(random.uniform(2, 5))  # Random sleep to mimic human behavior
 
-        # Mengunjungi direct link dengan referer
-        direct_link = "https://www.profitablecpmrate.com/b1ybe1zgqj?key=638cfc32d59378f6618857b1192b5652"
-        page.goto(direct_link, referer=referer_url)  # Menambahkan referer
-        logging.info(f'Worker with proxy {proxy} visited the direct link with referer.')
+            # Mengunjungi direct link dengan referer
+            direct_link = "https://www.profitablecpmrate.com/b1ybe1zgqj?key=638cfc32d59378f6618857b1192b5652"
+            page.goto(direct_link, referer=referer_url)  # Menambahkan referer
+            logging.info(f'Worker with proxy {proxy} visited the direct link with referer.')
 
-        time.sleep(random.uniform(2, 5))  # Random sleep to mimic human behavior
+            time.sleep(random.uniform(2, 5))  # Random sleep to mimic human behavior
 
-        browser.close()
-    logging.info(f'Worker with proxy {proxy} has finished processing.')
-
+            browser.close()
+        logging.info(f'Worker with proxy {proxy} has finished processing.')
+    except Exception as e:
+        logging.error(f'Worker with proxy {proxy} generated an exception: {e}')
+        
 def main(num_workers):
     proxies = read_proxies_from_file('proxy.txt')
     
