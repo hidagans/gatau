@@ -51,10 +51,20 @@ def run_playwright_with_proxy(proxy_url):
 
             logging.info(f'Navigating to {direct_link} using referer {referer_url}')
             page.goto(direct_link, referer=referer_url, timeout=30000)
-            logging.info(f'Worker with proxy {proxy_url} visited the direct link with referer.')
+
+            # Menunggu pengalihan sampai mencapai URL akhir
+            last_url = page.url
+            for _ in range(10):  # Maksimal 10 kali pengecekan pengalihan
+                time.sleep(3)  # Beri waktu jeda agar pengalihan terjadi
+                if page.url != last_url:
+                    logging.info(f'Redirected to: {page.url}')
+                    last_url = page.url  # Update URL yang saat ini diakses
+                else:
+                    break  # Keluar jika URL tidak berubah, artinya pengalihan selesai
+
+            logging.info(f'Final URL after possible redirects: {page.url}')
 
             time.sleep(random.uniform(30, 60))
-
             context.close()
             browser.close()
         logging.info(f'Worker with proxy {proxy_url} has finished processing.')
