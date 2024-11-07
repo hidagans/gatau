@@ -15,9 +15,9 @@ def get_random_user_agent():
 
 def get_random_referer():
     referers = [
-        "https://www.pinterest.com",
+        "https://pinterest.com",
         "https://web.telegram.org",
-        "https://www.instagram.com",
+        "https://instagram.com",
         "https://www.facebook.com",
         "https://www.twitter.com",
         "https://www.linkedin.com",
@@ -27,10 +27,10 @@ def get_random_referer():
         "https://www.youtube.com",
         "https://www.whatsapp.com",
         "https://www.snapchat.com",
-        "https://www.flickr.com",
+        "https://flickr.com",
         "https://www.tumblr.com",
         "https://www.medium.com",
-        "https://www.github.com",
+        "https://github.com",
         "https://www.stackoverflow.com",
         "https://www.paypal.com",
         "https://www.booking.com",
