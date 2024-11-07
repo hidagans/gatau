@@ -72,7 +72,7 @@ def run_playwright_with_proxy(proxy_url):
 
             # Arahkan ke halaman Anda
             page.goto("https://yeari.tech")
-    
+            page.wait_for_selector("body", timeout=60000)  # Menunggu 60 detik untuk body dimuat
             # Tunggu hingga elemen pop-up muncul
             page.wait_for_selector('div[data-element="overlay"]')  # Tunggu overlay muncul
             
