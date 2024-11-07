@@ -70,18 +70,22 @@ def run_playwright_with_proxy(proxy_url):
             )
             page = context.new_page()
 
-            direct_link = "https://yeari.tech"
-            logging.info(f'Navigating to {referer_url} using proxy {proxy_url}')
-            page.goto(referer_url, timeout=30000)
-            logging.info(f'Visited referer page.')
+            # Arahkan ke halaman Anda
+            page.goto("https://yeari.tech")
+    
+            # Tunggu hingga elemen pop-up muncul
+            page.wait_for_selector('div[data-element="overlay"]')  # Tunggu overlay muncul
+            
+            # Klik tombol "OK" atau "CANCEL"
+            try:
+                # Cek apakah tombol OK muncul dan klik
+                page.click('div[data-element="primary-button"]')  # Tombol OK
+            except:
+                # Jika tombol OK tidak ada, coba tombol CANCEL
+                page.click('span[data-element="close-button"]')  # Tombol CANCEL
 
             # Simulasi perilaku menavigasi situs
             time.sleep(random.uniform(15, 30))
-
-            logging.info(f'Navigating to {direct_link} using referer {referer_url}')
-            page.goto(direct_link, referer=referer_url, timeout=30000)
-            logging.info(f'Visited direct link with referer.')
-
             # Simulasikan perilaku pengguna (scroll dan hover di area tertentu)
             simulate_user_behavior(page)
 
