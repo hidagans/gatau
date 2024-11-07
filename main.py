@@ -15,25 +15,10 @@ def get_random_user_agent():
 
 def get_random_referer():
     referers = [
-        "https://pinterest.com",
+        "https://www.pinterest.com",
         "https://web.telegram.org",
-        "https://instagram.com",
+        "https://www.instagram.com",
         "https://www.facebook.com",
-        "https://www.twitter.com",
-        "https://www.linkedin.com",
-        "https://www.reddit.com",
-        "https://www.tiktok.com",
-        "https://www.quora.com",
-        "https://www.youtube.com",
-        "https://www.whatsapp.com",
-        "https://www.snapchat.com",
-        "https://flickr.com",
-        "https://www.tumblr.com",
-        "https://www.medium.com",
-        "https://github.com",
-        "https://www.stackoverflow.com",
-        "https://www.paypal.com",
-        "https://www.booking.com",
         # Tambahkan lebih banyak referer sesuai kebutuhan
     ]
     return random.choice(referers)
@@ -48,17 +33,23 @@ def read_proxies_from_file(filename):
         return []
 
 def simulate_user_behavior(page):
-    for _ in range(3):
+    # Simulasi gerakan kursor acak
+    for _ in range(5):
         x = random.randint(0, 1280)
         y = random.randint(0, 720)
         page.mouse.move(x, y)
-        time.sleep(random.uniform(0.1, 0.5))
-    
-    if random.random() < 0.5:
-        page.mouse.click(random.randint(0, 1280), random.randint(0, 720))
+        time.sleep(random.uniform(0.2, 0.8))
 
-    page.mouse.wheel(0, random.randint(100, 500))
-    time.sleep(random.uniform(1, 3))
+    # Simulasi hover di area iklan tanpa klik langsung
+    hover_x, hover_y = random.randint(200, 600), random.randint(100, 400)
+    page.mouse.move(hover_x, hover_y)
+    logging.info(f"Hovering near ad area at {hover_x}, {hover_y}")
+    time.sleep(random.uniform(2, 5))  # Stay near ad for a few seconds
+
+    # Gulir ke bawah secara bertahap
+    for _ in range(3):
+        page.mouse.wheel(0, random.randint(200, 500))
+        time.sleep(random.uniform(1, 2))  # Tunda sedikit antara scroll
 
 def run_playwright_with_proxy(proxy_url):
     parsed_proxy = urlparse(proxy_url)
@@ -84,14 +75,17 @@ def run_playwright_with_proxy(proxy_url):
             page.goto(referer_url, timeout=30000)
             logging.info(f'Visited referer page.')
 
+            # Simulasi perilaku menavigasi situs
             time.sleep(random.uniform(15, 30))
 
             logging.info(f'Navigating to {direct_link} using referer {referer_url}')
             page.goto(direct_link, referer=referer_url, timeout=30000)
             logging.info(f'Visited direct link with referer.')
 
+            # Simulasikan perilaku pengguna (scroll dan hover di area tertentu)
             simulate_user_behavior(page)
 
+            # Tunda sebelum keluar agar kunjungan terlihat lebih lama
             time.sleep(random.uniform(30, 60))
 
             context.close()
@@ -100,20 +94,18 @@ def run_playwright_with_proxy(proxy_url):
     except Exception as e:
         logging.error(f'Worker with proxy {proxy_url} generated an exception: {e}')
 
-def main():
+def main(num_workers):
     proxies = read_proxies_from_file('proxy.txt')
 
     if not proxies:
         logging.warning("No proxies found in proxy.txt")
         return
 
-    num_workers = len(proxies)  # Set jumlah worker sesuai jumlah proxy
-
     while True:
-        logging.info(f'Starting {num_workers} workers based on available proxies.')
+        logging.info(f'Starting {num_workers} workers.')
         
         with ThreadPoolExecutor(max_workers=num_workers) as executor:
-            futures = {executor.submit(run_playwright_with_proxy, proxy): proxy for proxy in proxies}
+            futures = {executor.submit(run_playwright_with_proxy, random.choice(proxies)): i for i in range(num_workers)}
             
             for future in futures:
                 try:
@@ -121,9 +113,11 @@ def main():
                 except Exception as e:
                     logging.error(f'Worker generated an exception: {e}')
         
+        # Delay acak antara 5 hingga 30 menit setelah semua worker selesai
         delay = random.randint(5 * 60, 30 * 60)
         logging.info(f'All workers completed. Waiting for {delay / 60} minutes before starting new batch.')
         time.sleep(delay)
 
 if __name__ == "__main__":
-    main()
+    NUM_WORKERS = 10  # Jumlah worker yang akan dijalankan
+    main(NUM_WORKERS)
