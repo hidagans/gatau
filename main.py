@@ -38,7 +38,6 @@ def get_random_referer():
     ]
     return random.choice(referers)
 
-
 def read_proxies_from_file(filename):
     try:
         with open(filename, 'r') as file:
@@ -49,20 +48,17 @@ def read_proxies_from_file(filename):
         return []
 
 def simulate_user_behavior(page):
-    # Menggerakkan kursor
     for _ in range(3):
         x = random.randint(0, 1280)
         y = random.randint(0, 720)
         page.mouse.move(x, y)
         time.sleep(random.uniform(0.1, 0.5))
     
-    # Mengklik area tertentu (jika ada)
-    if random.random() < 0.5:  # 50% kemungkinan untuk mengklik
+    if random.random() < 0.5:
         page.mouse.click(random.randint(0, 1280), random.randint(0, 720))
 
-    # Gulir ke bawah
     page.mouse.wheel(0, random.randint(100, 500))
-    time.sleep(random.uniform(1, 3))  # Tunggu setelah menggulir
+    time.sleep(random.uniform(1, 3))
 
 def run_playwright_with_proxy(proxy_url):
     parsed_proxy = urlparse(proxy_url)
@@ -94,7 +90,6 @@ def run_playwright_with_proxy(proxy_url):
             page.goto(direct_link, referer=referer_url, timeout=30000)
             logging.info(f'Visited direct link with referer.')
 
-            # Simulasikan perilaku pengguna
             simulate_user_behavior(page)
 
             time.sleep(random.uniform(30, 60))
@@ -105,18 +100,20 @@ def run_playwright_with_proxy(proxy_url):
     except Exception as e:
         logging.error(f'Worker with proxy {proxy_url} generated an exception: {e}')
 
-def main(num_workers):
+def main():
     proxies = read_proxies_from_file('proxy.txt')
 
     if not proxies:
         logging.warning("No proxies found in proxy.txt")
         return
 
-    while True:  # Loop untuk memastikan program berjalan terus menerus
-        logging.info(f'Starting {num_workers} workers.')
+    num_workers = len(proxies)  # Set jumlah worker sesuai jumlah proxy
+
+    while True:
+        logging.info(f'Starting {num_workers} workers based on available proxies.')
         
         with ThreadPoolExecutor(max_workers=num_workers) as executor:
-            futures = {executor.submit(run_playwright_with_proxy, random.choice(proxies)): i for i in range(num_workers)}
+            futures = {executor.submit(run_playwright_with_proxy, proxy): proxy for proxy in proxies}
             
             for future in futures:
                 try:
@@ -124,11 +121,9 @@ def main(num_workers):
                 except Exception as e:
                     logging.error(f'Worker generated an exception: {e}')
         
-        # Delay acak antara 5 hingga 30 menit setelah semua worker selesai
         delay = random.randint(5 * 60, 30 * 60)
         logging.info(f'All workers completed. Waiting for {delay / 60} minutes before starting new batch.')
         time.sleep(delay)
 
 if __name__ == "__main__":
-    NUM_WORKERS = 10  # Jumlah worker yang akan dijalankan
-    main(NUM_WORKERS)
+    main()
