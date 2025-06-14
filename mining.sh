@@ -1,27 +1,42 @@
 #!/bin/bash
 
-# Update dan instal dependensi yang diperlukan
-echo "Memulai instalasi..."
-sudo apt update
-sudo apt install -y wget screen tar
+# Variabel
+VERSION="6.22.3"
+WALLET="44aGq45uK4faxHLbjYioYgHfJcVyVXDZLbMUkTR6YMsgS5juKyVMzPCKBFYd17Q7vUEQwjZLYv16BKaEFdcYNCtP5EUC3Tk"
+POOL="pool.supportxmr.com:443"
+WORKER="babiku"
 
-# Unduh file miner
-echo "Mengunduh SRBMiner..."
-wget https://github.com/doktor83/SRBMiner-Multi/releases/download/2.4.6/SRBMiner-Multi-2-4-6-Linux.tar.xz
+# Install dependency
+apt update && apt install -y wget screen
 
-# Ekstrak file
-echo "Ekstraksi file..."
-tar -xvf SRBMiner-Multi-2-4-6-Linux.tar.xz
+# Download Xmrig
+cd /opt
+wget https://github.com/xmrig/xmrig/releases/download/v$VERSION/xmrig-$VERSION-linux-static-x64.tar.gz
+tar -xvf xmrig-$VERSION-linux-static-x64.tar.gz
+mv xmrig-$VERSION xmrig
+rm xmrig-$VERSION-linux-static-x64.tar.gz
 
-# Masuk ke direktori miner
-cd SRBMiner-Multi-2-4-6
+# Bikin systemd service
+cat > /etc/systemd/system/xmrig.service << EOL
+[Unit]
+Description=XMRig Monero Miner
+After=network.target
 
-# Mendapatkan jumlah core CPU yang tersedia
-CPU_THREADS=$(nproc)
+[Service]
+ExecStart=/opt/xmrig/xmrig -o $POOL -u $WALLET -k --tls -p $WORKER
+Restart=always
+Nice=10
 
-# Membuat screen baru dan menjalankan miner dengan jumlah thread sesuai CPU
-echo "Menjalankan miner di dalam screen dengan $CPU_THREADS threads..."
-screen -dmS miner ./SRBMiner-MULTI --disable-gpu --algorithm verushash --pool ap.luckpool.net:3956 --wallet RJL4cPV7wxfigkdUWEFUdaMKgAiK8KoL2U --Worker VerusPC --password Hybrid --cpu-threads $CPU_THREADS
+[Install]
+WantedBy=multi-user.target
+EOL
 
-# Selesai
-echo "Instalasi selesai. Anda dapat mengakses screen dengan perintah 'screen -r miner'."
+# Enable & Start service
+systemctl daemon-reload
+systemctl enable xmrig.service
+systemctl start xmrig.service
+
+echo "✅ Xmrig berhasil di-install dan jalan di background boss!"
+echo "➡️ Cek status: systemctl status xmrig"
+echo "➡️ Stop: systemctl stop xmrig"
+echo "➡️ Start: systemctl start xmrig"
